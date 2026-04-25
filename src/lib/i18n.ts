@@ -123,7 +123,7 @@ export const dict = {
   },
 } as const;
 
-export type Dict = typeof dict.tr;
+export type Dict = { [K in keyof typeof dict.tr]: string };
 
 export const I18nContext = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: Dict }>({
   lang: "tr",
