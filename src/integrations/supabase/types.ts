@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      wargames: {
+        Row: {
+          created_at: string
+          current_round: Json | null
+          game_mode: string
+          history: Json
+          id: string
+          metrics: Json
+          news_feed: Json
+          session_id: string
+          status: string
+          threat: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_round?: Json | null
+          game_mode?: string
+          history?: Json
+          id?: string
+          metrics?: Json
+          news_feed?: Json
+          session_id: string
+          status?: string
+          threat?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_round?: Json | null
+          game_mode?: string
+          history?: Json
+          id?: string
+          metrics?: Json
+          news_feed?: Json
+          session_id?: string
+          status?: string
+          threat?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
