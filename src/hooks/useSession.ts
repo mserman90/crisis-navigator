@@ -13,7 +13,13 @@ type Args = {
   joinAsParticipant?: boolean;
 };
 
-export function useSession({ sessionId, gameMode, ownerUserId, joinAsParticipant }: Args) {
+export function useSession(args: Args | null | undefined) {
+  const { sessionId, gameMode, ownerUserId, joinAsParticipant } = args ?? {
+    sessionId: null,
+    gameMode: null,
+    ownerUserId: null,
+    joinAsParticipant: false,
+  };
   const [data, setData] = useState<SessionRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
