@@ -116,12 +116,7 @@ export function Lobby({ onSelect }: Props) {
           </div>
         </header>
 
-        <section className="mb-12">
-          <h2 className="text-4xl lg:text-5xl font-display font-semibold tracking-tight text-foreground max-w-3xl">
-            {t.lobbyTitle}
-          </h2>
-          <p className="mt-3 text-muted-foreground max-w-2xl">{t.appSubtitle}</p>
-        </section>
+        <LobbyHero />
 
         <section className="space-y-10">
           <div>
