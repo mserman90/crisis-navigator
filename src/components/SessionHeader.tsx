@@ -41,9 +41,22 @@ export function Header({ role, session, onBack }: Props) {
                 </span>
               )}
             </div>
-            <div className="text-xs text-muted-foreground font-mono uppercase tracking-widest flex items-center gap-2">
+            <div className="text-xs text-muted-foreground font-mono uppercase tracking-widest flex items-center gap-2 flex-wrap">
               <Activity size={11} />
               {t.status}: {session.status}
+              {session.game_mode === "MULTI" && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(session.session_id);
+                    toast.success(session.session_id);
+                  }}
+                  className="ml-1 inline-flex items-center gap-1 text-foreground bg-secondary border border-border rounded-full px-2 py-0.5 hover:bg-accent transition-colors normal-case"
+                  title="Copy session code"
+                >
+                  <Copy size={10} />
+                  <span className="font-mono">{session.session_id}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
