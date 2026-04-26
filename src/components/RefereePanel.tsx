@@ -58,7 +58,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           diplomacy: clamp(m.diplomacy + (opt.impact.diplomacy ?? 0)),
           infrastructure: clamp(m.infrastructure + (opt.impact.infrastructure ?? 0)),
         };
-        await updateSession(session.session_id, {
+        await updateSession({
           status: "EVALUATION",
           metrics: newMetrics,
           history: [...session.history, opt],
@@ -87,7 +87,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           lang,
         },
       });
-      await updateSession(session.session_id, {
+      await updateSession({
         status: "PLAYING",
         current_round: round,
       });
@@ -104,7 +104,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
       hour: "2-digit",
       minute: "2-digit",
     });
-    await updateSession(session.session_id, {
+    await updateSession({
       news_feed: [...session.news_feed, { text: newsInput, time }],
     });
     setNewsInput("");
@@ -145,7 +145,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
               {session.status === "LOBBY" ? t.startSim : t.nextMove}
             </button>
             <button
-              onClick={() => resetSession(session.session_id, session.game_mode)}
+              onClick={() => resetSession()}
               className="inline-flex items-center gap-2 bg-surface-2 border border-border text-foreground px-4 py-3 rounded-xl font-semibold hover:bg-secondary transition-colors"
             >
               <RefreshCw size={16} />
