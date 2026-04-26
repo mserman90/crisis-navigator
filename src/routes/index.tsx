@@ -7,6 +7,10 @@ import { PlayerPanel } from "@/components/PlayerPanel";
 import { RefereePanel } from "@/components/RefereePanel";
 import { useAuth } from "@/components/AuthProvider";
 import { useSession } from "@/hooks/useSession";
+import {
+  LocalSessionStoreProvider,
+  RemoteSessionStoreProvider,
+} from "@/hooks/useSessionStore";
 import { useI18n } from "@/lib/i18n";
 import type { Role, SessionRow } from "@/lib/types";
 import { Activity, AlertTriangle } from "lucide-react";
@@ -40,21 +44,12 @@ function generateSessionCode() {
 }
 
 function Index() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<Role | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMode, setGameMode] = useState<SessionRow["game_mode"] | null>(null);
   const [joinAsParticipant, setJoinAsParticipant] = useState(false);
-
-  const ownerUserId = user?.id ?? null;
-
-  const { data: session, loading, error } = useSession({
-    sessionId,
-    gameMode,
-    ownerUserId,
-    joinAsParticipant,
-  });
 
   const handleSelect = (args: {
     role: Role;
@@ -68,8 +63,8 @@ function Index() {
     if (args.mode === "MULTI") {
       setSessionId(args.sessionCode ?? generateSessionCode());
     } else {
-      // Solo modes: per-user session id (still tied to owner via RLS)
-      setSessionId(`solo-${args.mode.toLowerCase()}-${ownerUserId ?? "anon"}-${Date.now()}`);
+      // Solo modes: per-user session id (still tied to owner via RLS when signed in)
+      setSessionId(`solo-${args.mode.toLowerCase()}-${user?.id ?? "guest"}-${Date.now()}`);
     }
   };
 
@@ -91,9 +86,70 @@ function Index() {
     );
   }
 
-  if (!role || !sessionId) {
+  if (!role || !sessionId || !gameMode) {
     return <Lobby onSelect={handleSelect} />;
   }
+
+  // Guest solo play: no Supabase row, no auth required.
+  const isGuestSolo = !user && gameMode !== "MULTI";
+
+  if (isGuestSolo) {
+    return (
+      <LocalSessionStoreProvider sessionId={sessionId} gameMode={gameMode}>
+        <GuestSoloShell role={role} onBack={handleBack} />
+      </LocalSessionStoreProvider>
+    );
+  }
+
+  return (
+    <RemoteSessionShell
+      role={role}
+      sessionId={sessionId}
+      gameMode={gameMode}
+      ownerUserId={user?.id ?? null}
+      joinAsParticipant={joinAsParticipant}
+      onBack={handleBack}
+    />
+  );
+}
+
+function GuestSoloShell({ role, onBack }: { role: Role; onBack: () => void }) {
+  // Read the local session via context (provider wraps us). Avoid prop-drilling.
+  const { useSessionStore } = require("@/hooks/useSessionStore") as typeof import("@/hooks/useSessionStore");
+  const { session } = useSessionStore();
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <LiveTicker items={session.news_feed} />
+      <div className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8">
+        <Header role={role} session={session} onBack={onBack} />
+        {role === "PLAYER" ? <PlayerPanel session={session} /> : <RefereePanel session={session} />}
+      </div>
+    </div>
+  );
+}
+
+function RemoteSessionShell({
+  role,
+  sessionId,
+  gameMode,
+  ownerUserId,
+  joinAsParticipant,
+  onBack,
+}: {
+  role: Role;
+  sessionId: string;
+  gameMode: SessionRow["game_mode"];
+  ownerUserId: string | null;
+  joinAsParticipant: boolean;
+  onBack: () => void;
+}) {
+  const { t, lang } = useI18n();
+  const { data: session, loading, error } = useSession({
+    sessionId,
+    gameMode,
+    ownerUserId,
+    joinAsParticipant,
+  });
 
   if (loading) {
     return (
@@ -124,23 +180,25 @@ function Index() {
           <p className="text-sm text-muted-foreground mb-6 font-mono">
             {error && error !== "not_found" ? error : null}
           </p>
-          <Button onClick={handleBack}>{t.backToLobby}</Button>
+          <Button onClick={onBack}>{t.backToLobby}</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <LiveTicker items={session.news_feed} />
-      <div className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8">
-        <Header role={role} session={session} onBack={handleBack} />
-        {role === "PLAYER" ? (
-          <PlayerPanel session={session} />
-        ) : (
-          <RefereePanel session={session} />
-        )}
+    <RemoteSessionStoreProvider session={session}>
+      <div className="min-h-screen flex flex-col bg-background">
+        <LiveTicker items={session.news_feed} />
+        <div className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8">
+          <Header role={role} session={session} onBack={onBack} />
+          {role === "PLAYER" ? (
+            <PlayerPanel session={session} />
+          ) : (
+            <RefereePanel session={session} />
+          )}
+        </div>
       </div>
-    </div>
+    </RemoteSessionStoreProvider>
   );
 }
