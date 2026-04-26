@@ -36,6 +36,7 @@ export type SessionRow = {
   history: Option[];
   news_feed: NewsItem[];
   current_round: Round | null;
+  owner_id: string | null;
   created_at: string;
   updated_at: string;
 };
