@@ -3,7 +3,7 @@ import { Activity, Bot, Brain, RefreshCw, Send, Terminal, Zap } from "lucide-rea
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { generateScenario, generateOperatorChoice } from "@/server/ai.functions";
-import { resetSession, updateSession } from "@/hooks/useSession";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import type { Option, SessionRow } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
 export function RefereePanel({ session }: { session: SessionRow }) {
   const { t, lang } = useI18n();
+  const { update: updateSession, reset: resetSession } = useSessionStore();
   const [aiLoading, setAiLoading] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [newsInput, setNewsInput] = useState("");

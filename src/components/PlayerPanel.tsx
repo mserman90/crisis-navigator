@@ -34,7 +34,7 @@ export function PlayerPanel({ session }: Props) {
           lang,
         },
       });
-      await updateSession(session.session_id, {
+      await updateSession({
         status: "PLAYING",
         current_round: round,
       });
@@ -55,7 +55,7 @@ export function PlayerPanel({ session }: Props) {
       diplomacy: clamp(m.diplomacy + (opt.impact.diplomacy ?? 0)),
       infrastructure: clamp(m.infrastructure + (opt.impact.infrastructure ?? 0)),
     };
-    await updateSession(session.session_id, {
+    await updateSession({
       status: "EVALUATION",
       metrics: newMetrics,
       history: [...session.history, opt],
