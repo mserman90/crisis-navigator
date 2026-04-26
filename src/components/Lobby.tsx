@@ -7,6 +7,7 @@ import { AuthDialog } from "./AuthDialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import type { Role, SessionRow } from "@/lib/types";
+import { LobbyHero } from "./LobbyHero";
 
 type StartArgs = {
   role: Role;
