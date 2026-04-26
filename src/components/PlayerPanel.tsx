@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { TacticalMap } from "./TacticalMap";
 import { useI18n } from "@/lib/i18n";
 import { generateScenario } from "@/server/ai.functions";
-import { updateSession } from "@/hooks/useSession";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import type { Option, SessionRow } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -16,6 +16,7 @@ type Props = {
 
 export function PlayerPanel({ session }: Props) {
   const { t, lang } = useI18n();
+  const { update: updateSession } = useSessionStore();
   const [ap, setAp] = useState(3);
   const [intelRevealed, setIntelRevealed] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
