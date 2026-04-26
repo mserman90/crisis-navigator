@@ -10,6 +10,7 @@ import { useSession } from "@/hooks/useSession";
 import {
   LocalSessionStoreProvider,
   RemoteSessionStoreProvider,
+  useSessionStore,
 } from "@/hooks/useSessionStore";
 import { useI18n } from "@/lib/i18n";
 import type { Role, SessionRow } from "@/lib/types";
@@ -114,8 +115,6 @@ function Index() {
 }
 
 function GuestSoloShell({ role, onBack }: { role: Role; onBack: () => void }) {
-  // Read the local session via context (provider wraps us). Avoid prop-drilling.
-  const { useSessionStore } = require("@/hooks/useSessionStore") as typeof import("@/hooks/useSessionStore");
   const { session } = useSessionStore();
   return (
     <div className="min-h-screen flex flex-col bg-background">
