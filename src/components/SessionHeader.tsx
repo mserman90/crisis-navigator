@@ -1,6 +1,7 @@
-import { Activity, ArrowLeft, ShieldAlert, User } from "lucide-react";
+import { Activity, ArrowLeft, Copy, ShieldAlert, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { LangToggle } from "./LangToggle";
+import { toast } from "sonner";
 import type { Metrics, Role, SessionRow } from "@/lib/types";
 
 type Props = {
