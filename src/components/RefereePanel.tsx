@@ -3,7 +3,7 @@ import { Activity, Bot, Brain, RefreshCw, Send, Terminal, Zap } from "lucide-rea
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { generateScenario, generateOperatorChoice } from "@/server/ai.functions";
-import { resetSession, updateSession } from "@/hooks/useSession";
+import { useSessionStore } from "@/hooks/useSessionStore";
 import type { Option, SessionRow } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
 export function RefereePanel({ session }: { session: SessionRow }) {
   const { t, lang } = useI18n();
+  const { update: updateSession, reset: resetSession } = useSessionStore();
   const [aiLoading, setAiLoading] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [newsInput, setNewsInput] = useState("");
@@ -57,7 +58,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           diplomacy: clamp(m.diplomacy + (opt.impact.diplomacy ?? 0)),
           infrastructure: clamp(m.infrastructure + (opt.impact.infrastructure ?? 0)),
         };
-        await updateSession(session.session_id, {
+        await updateSession({
           status: "EVALUATION",
           metrics: newMetrics,
           history: [...session.history, opt],
@@ -86,7 +87,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           lang,
         },
       });
-      await updateSession(session.session_id, {
+      await updateSession({
         status: "PLAYING",
         current_round: round,
       });
@@ -103,7 +104,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
       hour: "2-digit",
       minute: "2-digit",
     });
-    await updateSession(session.session_id, {
+    await updateSession({
       news_feed: [...session.news_feed, { text: newsInput, time }],
     });
     setNewsInput("");
@@ -144,7 +145,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
               {session.status === "LOBBY" ? t.startSim : t.nextMove}
             </button>
             <button
-              onClick={() => resetSession(session.session_id, session.game_mode)}
+              onClick={() => resetSession()}
               className="inline-flex items-center gap-2 bg-surface-2 border border-border text-foreground px-4 py-3 rounded-xl font-semibold hover:bg-secondary transition-colors"
             >
               <RefreshCw size={16} />

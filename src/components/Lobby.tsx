@@ -51,6 +51,7 @@ export function Lobby({ onSelect }: Props) {
       };
 
   const requestStart = (role: Role, mode: SessionRow["game_mode"]) => {
+    // Solo modes are playable without an account; multiplayer requires sign-in.
     if (mode === "MULTI" && !user) {
       setAuthPrompt({ role, mode });
       return;
