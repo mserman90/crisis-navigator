@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      session_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          user_id: string
+          wargame_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          user_id: string
+          wargame_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          user_id?: string
+          wargame_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_wargame_id_fkey"
+            columns: ["wargame_id"]
+            isOneToOne: false
+            referencedRelation: "wargames"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wargames: {
         Row: {
           created_at: string
@@ -23,6 +52,7 @@ export type Database = {
           id: string
           metrics: Json
           news_feed: Json
+          owner_id: string | null
           session_id: string
           status: string
           threat: string
@@ -36,6 +66,7 @@ export type Database = {
           id?: string
           metrics?: Json
           news_feed?: Json
+          owner_id?: string | null
           session_id: string
           status?: string
           threat?: string
@@ -49,6 +80,7 @@ export type Database = {
           id?: string
           metrics?: Json
           news_feed?: Json
+          owner_id?: string | null
           session_id?: string
           status?: string
           threat?: string
@@ -61,7 +93,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_session_member: {
+        Args: { _user_id: string; _wargame_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
