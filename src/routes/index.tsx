@@ -5,10 +5,12 @@ import { Header } from "@/components/SessionHeader";
 import { LiveTicker } from "@/components/LiveTicker";
 import { PlayerPanel } from "@/components/PlayerPanel";
 import { RefereePanel } from "@/components/RefereePanel";
+import { useAuth } from "@/components/AuthProvider";
 import { useSession } from "@/hooks/useSession";
 import { useI18n } from "@/lib/i18n";
 import type { Role, SessionRow } from "@/lib/types";
-import { Activity } from "lucide-react";
+import { Activity, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,36 +32,99 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function generateSessionCode() {
+  const words = ["ATLAS", "DELTA", "ORION", "NOVA", "ECHO", "AXIS", "VEGA", "RAVEN"];
+  const word = words[Math.floor(Math.random() * words.length)];
+  const num = Math.floor(1000 + Math.random() * 9000);
+  return `${word}-${num}`;
+}
+
 function Index() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<Role | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMode, setGameMode] = useState<SessionRow["game_mode"] | null>(null);
+  const [joinAsParticipant, setJoinAsParticipant] = useState(false);
 
-  const { data: session, loading } = useSession(sessionId, gameMode);
+  const ownerUserId = user?.id ?? null;
 
-  const handleSelect = (selectedRole: Role, mode: SessionRow["game_mode"]) => {
-    setRole(selectedRole);
-    setGameMode(mode);
-    setSessionId(mode === "MULTI" ? "global-multi-session" : `solo-${Date.now()}`);
+  const { data: session, loading, error } = useSession({
+    sessionId,
+    gameMode,
+    ownerUserId,
+    joinAsParticipant,
+  });
+
+  const handleSelect = (args: {
+    role: Role;
+    mode: SessionRow["game_mode"];
+    sessionCode?: string;
+    asJoin?: boolean;
+  }) => {
+    setRole(args.role);
+    setGameMode(args.mode);
+    setJoinAsParticipant(!!args.asJoin);
+    if (args.mode === "MULTI") {
+      setSessionId(args.sessionCode ?? generateSessionCode());
+    } else {
+      // Solo modes: per-user session id (still tied to owner via RLS)
+      setSessionId(`solo-${args.mode.toLowerCase()}-${ownerUserId ?? "anon"}-${Date.now()}`);
+    }
   };
 
   const handleBack = () => {
     setRole(null);
     setSessionId(null);
     setGameMode(null);
+    setJoinAsParticipant(false);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex items-center gap-3 font-mono text-sm text-muted-foreground uppercase tracking-widest">
+          <Activity size={16} className="animate-spin" />
+          {t.connecting}
+        </div>
+      </div>
+    );
+  }
 
   if (!role || !sessionId) {
     return <Lobby onSelect={handleSelect} />;
   }
 
-  if (loading || !session) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3 font-mono text-sm text-muted-foreground uppercase tracking-widest">
           <Activity size={16} className="animate-spin" />
           {t.syncing}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    const notFound = error === "not_found" || (!session && joinAsParticipant);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="max-w-md text-center bg-surface border border-border rounded-3xl p-8 shadow-elevated">
+          <AlertTriangle size={32} className="text-destructive mx-auto mb-4" />
+          <h2 className="text-lg font-display font-semibold text-foreground mb-2">
+            {lang === "tr"
+              ? notFound
+                ? "Oturum bulunamadı veya erişim yok"
+                : "Oturuma erişilemedi"
+              : notFound
+                ? "Session not found or no access"
+                : "Cannot access session"}
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6 font-mono">
+            {error && error !== "not_found" ? error : null}
+          </p>
+          <Button onClick={handleBack}>{t.backToLobby}</Button>
         </div>
       </div>
     );
