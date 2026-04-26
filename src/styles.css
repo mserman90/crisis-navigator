@@ -175,4 +175,83 @@
   .animate-marquee {
     animation: marquee 40s linear infinite;
   }
+
+  /* ===== Hero animations ===== */
+  @keyframes hero-orbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes hero-orbit-rev {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+  @keyframes hero-blob {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); }
+    33% { transform: translate3d(4%, -3%, 0) scale(1.08); }
+    66% { transform: translate3d(-3%, 4%, 0) scale(0.94); }
+  }
+  @keyframes hero-scan {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 0.9; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+  @keyframes hero-fade-up {
+    0% { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  @keyframes hero-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes hero-ping-slow {
+    0% { transform: scale(1); opacity: 0.6; }
+    80%, 100% { transform: scale(2.4); opacity: 0; }
+  }
+  @keyframes hero-tick {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+
+  .animate-hero-orbit { animation: hero-orbit 40s linear infinite; }
+  .animate-hero-orbit-rev { animation: hero-orbit-rev 60s linear infinite; }
+  .animate-hero-blob { animation: hero-blob 18s ease-in-out infinite; }
+  .animate-hero-scan { animation: hero-scan 6s ease-in-out infinite; }
+  .animate-hero-fade-up { animation: hero-fade-up 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .animate-hero-ping-slow { animation: hero-ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite; }
+  .animate-hero-tick { animation: hero-tick 1.6s ease-in-out infinite; }
+
+  .hero-shimmer-text {
+    background: linear-gradient(
+      90deg,
+      var(--foreground) 0%,
+      var(--foreground) 35%,
+      color-mix(in oklab, var(--primary) 70%, var(--foreground)) 50%,
+      var(--foreground) 65%,
+      var(--foreground) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: hero-shimmer 6s linear infinite;
+  }
+
+  .hero-radial {
+    background:
+      radial-gradient(60% 50% at 20% 20%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%),
+      radial-gradient(50% 50% at 85% 30%, color-mix(in oklab, var(--info) 18%, transparent), transparent 70%),
+      radial-gradient(45% 45% at 70% 90%, color-mix(in oklab, var(--destructive) 14%, transparent), transparent 70%),
+      radial-gradient(40% 40% at 10% 95%, color-mix(in oklab, var(--warning) 16%, transparent), transparent 70%);
+  }
+
+  .hero-noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(color-mix(in oklab, var(--foreground) 8%, transparent) 1px, transparent 1px);
+    background-size: 3px 3px;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+  }
 }
