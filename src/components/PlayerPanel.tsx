@@ -42,7 +42,7 @@ export function PlayerPanel({ session }: Props) {
       setAp(3);
       setIntelRevealed(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+      toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
     } finally {
       setAiLoading(false);
     }
