@@ -18,18 +18,21 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          role: string
           user_id: string
           wargame_id: string
         }
         Insert: {
           id?: string
           joined_at?: string
+          role?: string
           user_id: string
           wargame_id: string
         }
         Update: {
           id?: string
           joined_at?: string
+          role?: string
           user_id?: string
           wargame_id?: string
         }
@@ -94,6 +97,14 @@ export type Database = {
     }
     Functions: {
       is_session_member: {
+        Args: { _user_id: string; _wargame_id: string }
+        Returns: boolean
+      }
+      is_session_owner: {
+        Args: { _user_id: string; _wargame_id: string }
+        Returns: boolean
+      }
+      is_session_referee: {
         Args: { _user_id: string; _wargame_id: string }
         Returns: boolean
       }
