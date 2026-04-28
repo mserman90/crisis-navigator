@@ -138,16 +138,16 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
             parameters: {
               type: "object",
               properties: {
-                situation: { type: "string", description: "Dramatic tactical summary" },
-                locationName: { type: "string" },
+                situation: { type: "string", description: "Dramatic tactical summary using only fictional names" },
+                locationName: { type: "string", description: "Fictional location name (no real cities)" },
                 location: {
                   type: "array",
                   items: { type: "number" },
                   minItems: 2,
                   maxItems: 2,
-                  description: "[latitude, longitude]",
+                  description: "[x, y] symbolic coordinates on virtual tactical grid, each between 0 and 100. NOT real lat/lng.",
                 },
-                mapZoom: { type: "number" },
+                mapZoom: { type: "number", description: "Tactical zoom level 1-10" },
                 deepIntel: { type: "string" },
                 options: {
                   type: "array",
