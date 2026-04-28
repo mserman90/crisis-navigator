@@ -194,7 +194,7 @@ En mantıklı seçeneğin indeks numarasını seç.`
         : `Metrics: Water:${metrics.water}%, Trust:${metrics.trust}%, Diplomacy:${metrics.diplomacy}%, Infrastructure:${metrics.infrastructure}%.
 Situation: ${situation}
 Options:
-${options.map((o, i) => `${i}: ${o.text}`).join("\n")}
+${options.map((o: { text: string }, i: number) => `${i}: ${o.text}`).join("\n")}
 
 Pick the index of the most reasonable option.`;
 
