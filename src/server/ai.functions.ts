@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
@@ -33,9 +34,33 @@ const roundSchema = z.object({
   options: z.array(optionSchema).min(2).max(4),
 });
 
+// Input schemas with strict runtime validation and bounded lengths to limit
+// prompt-injection surface and resource exhaustion.
+const langSchema = z.enum(["tr", "en"]);
+
+const generateScenarioInput = z.object({
+  threat: z.string().trim().min(1).max(200),
+  lastMove: z.string().trim().min(1).max(500),
+  metrics: metricsSchema,
+  lang: langSchema,
+});
+
+const generateOperatorChoiceInput = z.object({
+  situation: z.string().trim().min(1).max(2000),
+  options: z
+    .array(z.object({ text: z.string().trim().min(1).max(500) }))
+    .min(1)
+    .max(8),
+  metrics: metricsSchema,
+  lang: langSchema,
+});
+
 async function callAI(body: unknown) {
   const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+  if (!apiKey) {
+    console.error("AI gateway misconfigured: LOVABLE_API_KEY missing");
+    throw new Error("AI service temporarily unavailable.");
+  }
 
   const res = await fetch(GATEWAY_URL, {
     method: "POST",
@@ -47,16 +72,19 @@ async function callAI(body: unknown) {
   });
 
   if (!res.ok) {
-    const text = await res.text();
+    // Log full provider response server-side; never surface raw body to client.
+    const text = await res.text().catch(() => "");
+    console.error("AI gateway error", res.status, text);
     if (res.status === 429) throw new Error("Rate limit exceeded. Try again shortly.");
     if (res.status === 402) throw new Error("AI credits exhausted. Top up at Settings → Workspace → Usage.");
-    throw new Error(`AI gateway error ${res.status}: ${text}`);
+    throw new Error("AI service temporarily unavailable.");
   }
   return res.json();
 }
 
 export const generateScenario = createServerFn({ method: "POST" })
-  .inputValidator((data: { threat: string; lastMove: string; metrics: { water: number; trust: number; diplomacy: number; infrastructure: number }; lang: "tr" | "en" }) => data)
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => generateScenarioInput.parse(data))
   .handler(async ({ data }) => {
     const { threat, lastMove, metrics, lang } = data;
 
@@ -145,7 +173,8 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
   });
 
 export const generateOperatorChoice = createServerFn({ method: "POST" })
-  .inputValidator((data: { situation: string; options: { text: string }[]; metrics: { water: number; trust: number; diplomacy: number; infrastructure: number }; lang: "tr" | "en" }) => data)
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => generateOperatorChoiceInput.parse(data))
   .handler(async ({ data }) => {
     const { situation, options, metrics, lang } = data;
 
