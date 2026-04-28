@@ -1,9 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getAuthedSupabase } from "@/integrations/supabase/auth-helper";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
+
+// Keyless fallback: Pollinations.ai exposes an OpenAI-compatible endpoint with
+// no API key, used only if the Lovable AI gateway is unavailable / out of credits.
+const FALLBACK_URL = "https://text.pollinations.ai/openai";
+const FALLBACK_MODEL = "openai";
 
 const metricsSchema = z.object({
   water: z.number(),
@@ -55,38 +59,46 @@ const generateOperatorChoiceInput = z.object({
   lang: langSchema,
 });
 
-async function callAI(body: unknown) {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) {
-    console.error("AI gateway misconfigured: LOVABLE_API_KEY missing");
-    throw new Error("AI service temporarily unavailable.");
-  }
-
-  const res = await fetch(GATEWAY_URL, {
+async function callAIRaw(url: string, headers: Record<string, string>, body: unknown) {
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
-
   if (!res.ok) {
-    // Log full provider response server-side; never surface raw body to client.
     const text = await res.text().catch(() => "");
-    console.error("AI gateway error", res.status, text);
-    if (res.status === 429) throw new Error("Rate limit exceeded. Try again shortly.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Top up at Settings → Workspace → Usage.");
-    throw new Error("AI service temporarily unavailable.");
+    const err = new Error(`AI upstream ${res.status}: ${text.slice(0, 200)}`);
+    (err as Error & { status?: number }).status = res.status;
+    throw err;
   }
   return res.json();
+}
+
+async function callAI(body: Record<string, unknown>) {
+  const apiKey = process.env.LOVABLE_API_KEY;
+
+  // Primary: Lovable AI gateway
+  if (apiKey) {
+    try {
+      return await callAIRaw(GATEWAY_URL, { Authorization: `Bearer ${apiKey}` }, body);
+    } catch (e) {
+      const status = (e as Error & { status?: number }).status;
+      console.error("Lovable AI failed, trying keyless fallback:", status, (e as Error).message);
+      // Only fall back on quota/credit/rate issues or 5xx; surface other errors
+      if (status && status !== 429 && status !== 402 && status < 500) throw e;
+    }
+  } else {
+    console.warn("LOVABLE_API_KEY missing, using keyless fallback directly");
+  }
+
+  // Fallback: keyless Pollinations.ai (OpenAI-compatible)
+  const fallbackBody = { ...body, model: FALLBACK_MODEL };
+  return await callAIRaw(FALLBACK_URL, {}, fallbackBody);
 }
 
 export const generateScenario = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => generateScenarioInput.parse(data))
   .handler(async ({ data }) => {
-    // Use inline auth so failures are regular Error objects, not raw Responses.
-    await getAuthedSupabase();
     const { threat, lastMove, metrics, lang } = data;
 
     const systemPrompt =
@@ -176,8 +188,6 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
 export const generateOperatorChoice = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => generateOperatorChoiceInput.parse(data))
   .handler(async ({ data }) => {
-    // Use inline auth so failures are regular Error objects, not raw Responses.
-    await getAuthedSupabase();
     const { situation, options, metrics, lang } = data;
 
     const systemPrompt =
