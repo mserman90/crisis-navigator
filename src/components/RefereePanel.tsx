@@ -6,6 +6,7 @@ import { generateScenario, generateOperatorChoice } from "@/server/ai.functions"
 import { useSessionStore } from "@/hooks/useSessionStore";
 import type { Option, SessionRow } from "@/lib/types";
 import { toast } from "sonner";
+import { getServerFnErrorMessage } from "@/lib/serverFnError";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
@@ -64,7 +65,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           history: [...session.history, opt],
         });
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+        toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
       } finally {
         if (!cancelled) setAiThinking(false);
       }
@@ -92,7 +93,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
         current_round: round,
       });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+      toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
     } finally {
       setAiLoading(false);
     }

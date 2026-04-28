@@ -7,6 +7,7 @@ import { generateScenario } from "@/server/ai.functions";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import type { Option, SessionRow } from "@/lib/types";
 import { toast } from "sonner";
+import { getServerFnErrorMessage } from "@/lib/serverFnError";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, n));
 
@@ -41,7 +42,7 @@ export function PlayerPanel({ session }: Props) {
       setAp(3);
       setIntelRevealed(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+      toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
     } finally {
       setAiLoading(false);
     }
