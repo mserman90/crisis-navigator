@@ -188,8 +188,6 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
 export const generateOperatorChoice = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => generateOperatorChoiceInput.parse(data))
   .handler(async ({ data }) => {
-    // Use inline auth so failures are regular Error objects, not raw Responses.
-    await getAuthedSupabase();
     const { situation, options, metrics, lang } = data;
 
     const systemPrompt =
