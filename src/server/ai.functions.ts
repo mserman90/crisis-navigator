@@ -196,8 +196,8 @@ export const generateOperatorChoice = createServerFn({ method: "POST" })
 
     const systemPrompt =
       lang === "tr"
-        ? `Sen Stratejik Kriz Masası yöneticisi olan Sanal Operatörsün. Hedefin metrikleri 0'ın altına düşürmeden krizi yönetmek.`
-        : `You are the Virtual Operator running the Strategic Crisis Desk. Goal: keep all metrics above zero.`;
+        ? `Sen Stratejik Kriz Masası yöneticisi olan Sanal Operatörsün. Hedefin metrikleri 0'ın altına düşürmeden krizi yönetmek. Tüm referansların kurgusal evrene aittir; gerçek ülke/şehir/kişi/kurum adı kullanma.`
+        : `You are the Virtual Operator running the Strategic Crisis Desk. Goal: keep all metrics above zero. All references belong to a fictional universe; never use real country/city/person/organization names.`;
 
     const userPrompt =
       lang === "tr"
