@@ -60,6 +60,7 @@ export const dict = {
     type: "TİP",
     backToLobby: "Lobiye Dön",
     aiUnavailable: "AI verisi şu anda mevcut değil. Lütfen tekrar deneyin.",
+    signInRequired: "AI özellikleri için lütfen giriş yapın.",
     sessionId: "Oturum",
   },
   en: {
