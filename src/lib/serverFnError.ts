@@ -17,6 +17,12 @@ export async function getServerFnErrorMessage(
       return fallback;
     }
   }
-  if (err instanceof Error) return err.message;
+  if (err instanceof Error) {
+    // AuthRequiredError surfaces as a normal Error across the RPC boundary.
+    if (err.message?.toLowerCase().includes("authentication required")) {
+      return signInRequired;
+    }
+    return err.message || fallback;
+  }
   return fallback;
 }
