@@ -1,7 +1,7 @@
 // Helper to extract a user-facing message from errors thrown by server functions.
-// TanStack Start middleware (e.g. requireSupabaseAuth) throws raw Response
-// objects. Without this helper they stringify to "[object Response]" and can
-// crash error boundaries. We turn 401s into a "sign in required" message.
+// Some server failures can arrive as raw Response objects. Without this helper
+// they stringify to "[object Response]" and can crash error boundaries. We turn
+// 401s into a "sign in required" message.
 
 export async function getServerFnErrorMessage(
   err: unknown,
