@@ -101,10 +101,13 @@ export const generateScenario = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { threat, lastMove, metrics, lang } = data;
 
+    const fictionRulesTR = `KURGUSAL EVREN KURALI (ZORUNLU): Tüm isimler, ülkeler, şehirler, kuruluşlar, liderler ve coğrafi konumlar tamamen kurgusal olmalıdır. Hiçbir gerçek ülke (Türkiye, Rusya, ABD, İran, Çin vb.), gerçek şehir (İstanbul, Moskova, Washington vb.), gerçek kişi, gerçek kurum (NATO, BM, CIA vb.), gerçek nehir/deniz veya gerçek olay ASLA kullanma. Bunun yerine kurgusal isimler üret: ülkeler ör. "Velmara Cumhuriyeti", "Astrakon Federasyonu", "Norhal Birliği"; şehirler ör. "Kerathon", "Vexyl Limanı"; kuruluşlar ör. "Pakt-9", "Senturion Konseyi"; liderler ör. "Mareşal Volken". 'location' alanı sembolik [x, y] koordinatları olmalı: x ve y değerleri 0 ile 100 arasında ondalık sayılar (gerçek enlem/boylam DEĞİL — sanal taktik harita üzerinde konum).`;
+    const fictionRulesEN = `FICTIONAL UNIVERSE RULE (MANDATORY): All names, countries, cities, organizations, leaders and geographic locations must be entirely fictional. NEVER use any real country (USA, Russia, Turkey, Iran, China etc.), real city (Istanbul, Moscow, Washington etc.), real person, real organization (NATO, UN, CIA etc.), real river/sea or real event. Invent names instead: countries e.g. "Republic of Velmara", "Astrakon Federation", "Norhal Union"; cities e.g. "Kerathon", "Port Vexyl"; orgs e.g. "Pact-9", "Centurion Council"; leaders e.g. "Marshal Volken". The 'location' field must be symbolic [x, y] coordinates: x and y are decimals between 0 and 100 (NOT real lat/lng — position on a virtual tactical grid).`;
+
     const systemPrompt =
       lang === "tr"
-        ? `Sen Stratejik Kriz Simülasyonunda Red Team (Saldırgan/Kriz) yapay zekasısın. Türkçe yanıt ver. Sadece tool_call ile yanıt ver.`
-        : `You are the Red Team (Attacker/Crisis) AI in a Strategic Crisis Simulation. Respond in English. Reply only via the tool_call.`;
+        ? `Sen Stratejik Kriz Simülasyonunda Red Team (Saldırgan/Kriz) yapay zekasısın. Türkçe yanıt ver. Sadece tool_call ile yanıt ver.\n\n${fictionRulesTR}`
+        : `You are the Red Team (Attacker/Crisis) AI in a Strategic Crisis Simulation. Respond in English. Reply only via the tool_call.\n\n${fictionRulesEN}`;
 
     const userPrompt =
       lang === "tr"
