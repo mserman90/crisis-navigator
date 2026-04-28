@@ -173,9 +173,9 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
   });
 
 export const generateOperatorChoice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => generateOperatorChoiceInput.parse(data))
   .handler(async ({ data }) => {
+    await getAuthedSupabase();
     const { situation, options, metrics, lang } = data;
 
     const systemPrompt =
