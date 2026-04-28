@@ -1,9 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getAuthedSupabase } from "@/integrations/supabase/auth-helper";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
+
+// Keyless fallback: Pollinations.ai exposes an OpenAI-compatible endpoint with
+// no API key, used only if the Lovable AI gateway is unavailable / out of credits.
+const FALLBACK_URL = "https://text.pollinations.ai/openai";
+const FALLBACK_MODEL = "openai";
 
 const metricsSchema = z.object({
   water: z.number(),
