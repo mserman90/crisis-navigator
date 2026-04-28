@@ -65,7 +65,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
           history: [...session.history, opt],
         });
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+        toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
       } finally {
         if (!cancelled) setAiThinking(false);
       }
