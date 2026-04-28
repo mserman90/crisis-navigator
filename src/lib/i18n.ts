@@ -120,6 +120,7 @@ export const dict = {
     type: "TYPE",
     backToLobby: "Back to lobby",
     aiUnavailable: "AI data unavailable. Please try again.",
+    signInRequired: "Please sign in to use AI features.",
     sessionId: "Session",
   },
 } as const;
