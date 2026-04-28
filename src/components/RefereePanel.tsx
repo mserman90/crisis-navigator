@@ -93,7 +93,7 @@ export function RefereePanel({ session }: { session: SessionRow }) {
         current_round: round,
       });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.aiUnavailable);
+      toast.error(await getServerFnErrorMessage(e, t.aiUnavailable, t.signInRequired));
     } finally {
       setAiLoading(false);
     }
