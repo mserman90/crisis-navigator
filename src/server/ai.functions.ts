@@ -32,8 +32,9 @@ const optionSchema = z.object({
 const roundSchema = z.object({
   situation: z.string(),
   locationName: z.string(),
-  location: z.tuple([z.number(), z.number()]),
-  mapZoom: z.number(),
+  // Sanal taktik harita üzerinde sembolik koordinat (gerçek enlem/boylam DEĞİL).
+  location: z.tuple([z.number().min(0).max(100), z.number().min(0).max(100)]),
+  mapZoom: z.number().min(1).max(10),
   deepIntel: z.string(),
   options: z.array(optionSchema).min(2).max(4),
 });
