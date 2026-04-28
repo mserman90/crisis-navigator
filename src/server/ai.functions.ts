@@ -83,9 +83,9 @@ async function callAI(body: unknown) {
 }
 
 export const generateScenario = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => generateScenarioInput.parse(data))
   .handler(async ({ data }) => {
+    await getAuthedSupabase();
     const { threat, lastMove, metrics, lang } = data;
 
     const systemPrompt =
