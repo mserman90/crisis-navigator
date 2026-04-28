@@ -65,7 +65,7 @@ export function LocalSessionStoreProvider({
     session_id: sessionId,
     status: "LOBBY",
     game_mode: gameMode,
-    threat: "Cyber-Hydrological Hybrid Attack",
+    threat: "Velmara–Astrakon Hibrit Kriz: Siber-Hidrolojik Sabotaj",
     metrics: initialMetrics,
     history: [],
     news_feed: [],

@@ -32,8 +32,9 @@ const optionSchema = z.object({
 const roundSchema = z.object({
   situation: z.string(),
   locationName: z.string(),
-  location: z.tuple([z.number(), z.number()]),
-  mapZoom: z.number(),
+  // Sanal taktik harita üzerinde sembolik koordinat (gerçek enlem/boylam DEĞİL).
+  location: z.tuple([z.number().min(0).max(100), z.number().min(0).max(100)]),
+  mapZoom: z.number().min(1).max(10),
   deepIntel: z.string(),
   options: z.array(optionSchema).min(2).max(4),
 });
@@ -101,10 +102,13 @@ export const generateScenario = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { threat, lastMove, metrics, lang } = data;
 
+    const fictionRulesTR = `KURGUSAL EVREN KURALI (ZORUNLU): Tüm isimler, ülkeler, şehirler, kuruluşlar, liderler ve coğrafi konumlar tamamen kurgusal olmalıdır. Hiçbir gerçek ülke (Türkiye, Rusya, ABD, İran, Çin vb.), gerçek şehir (İstanbul, Moskova, Washington vb.), gerçek kişi, gerçek kurum (NATO, BM, CIA vb.), gerçek nehir/deniz veya gerçek olay ASLA kullanma. Bunun yerine kurgusal isimler üret: ülkeler ör. "Velmara Cumhuriyeti", "Astrakon Federasyonu", "Norhal Birliği"; şehirler ör. "Kerathon", "Vexyl Limanı"; kuruluşlar ör. "Pakt-9", "Senturion Konseyi"; liderler ör. "Mareşal Volken". 'location' alanı sembolik [x, y] koordinatları olmalı: x ve y değerleri 0 ile 100 arasında ondalık sayılar (gerçek enlem/boylam DEĞİL — sanal taktik harita üzerinde konum).`;
+    const fictionRulesEN = `FICTIONAL UNIVERSE RULE (MANDATORY): All names, countries, cities, organizations, leaders and geographic locations must be entirely fictional. NEVER use any real country (USA, Russia, Turkey, Iran, China etc.), real city (Istanbul, Moscow, Washington etc.), real person, real organization (NATO, UN, CIA etc.), real river/sea or real event. Invent names instead: countries e.g. "Republic of Velmara", "Astrakon Federation", "Norhal Union"; cities e.g. "Kerathon", "Port Vexyl"; orgs e.g. "Pact-9", "Centurion Council"; leaders e.g. "Marshal Volken". The 'location' field must be symbolic [x, y] coordinates: x and y are decimals between 0 and 100 (NOT real lat/lng — position on a virtual tactical grid).`;
+
     const systemPrompt =
       lang === "tr"
-        ? `Sen Stratejik Kriz Simülasyonunda Red Team (Saldırgan/Kriz) yapay zekasısın. Türkçe yanıt ver. Sadece tool_call ile yanıt ver.`
-        : `You are the Red Team (Attacker/Crisis) AI in a Strategic Crisis Simulation. Respond in English. Reply only via the tool_call.`;
+        ? `Sen Stratejik Kriz Simülasyonunda Red Team (Saldırgan/Kriz) yapay zekasısın. Türkçe yanıt ver. Sadece tool_call ile yanıt ver.\n\n${fictionRulesTR}`
+        : `You are the Red Team (Attacker/Crisis) AI in a Strategic Crisis Simulation. Respond in English. Reply only via the tool_call.\n\n${fictionRulesEN}`;
 
     const userPrompt =
       lang === "tr"
@@ -134,16 +138,16 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
             parameters: {
               type: "object",
               properties: {
-                situation: { type: "string", description: "Dramatic tactical summary" },
-                locationName: { type: "string" },
+                situation: { type: "string", description: "Dramatic tactical summary using only fictional names" },
+                locationName: { type: "string", description: "Fictional location name (no real cities)" },
                 location: {
                   type: "array",
                   items: { type: "number" },
                   minItems: 2,
                   maxItems: 2,
-                  description: "[latitude, longitude]",
+                  description: "[x, y] symbolic coordinates on virtual tactical grid, each between 0 and 100. NOT real lat/lng.",
                 },
-                mapZoom: { type: "number" },
+                mapZoom: { type: "number", description: "Tactical zoom level 1-10" },
                 deepIntel: { type: "string" },
                 options: {
                   type: "array",
@@ -192,8 +196,8 @@ export const generateOperatorChoice = createServerFn({ method: "POST" })
 
     const systemPrompt =
       lang === "tr"
-        ? `Sen Stratejik Kriz Masası yöneticisi olan Sanal Operatörsün. Hedefin metrikleri 0'ın altına düşürmeden krizi yönetmek.`
-        : `You are the Virtual Operator running the Strategic Crisis Desk. Goal: keep all metrics above zero.`;
+        ? `Sen Stratejik Kriz Masası yöneticisi olan Sanal Operatörsün. Hedefin metrikleri 0'ın altına düşürmeden krizi yönetmek. Tüm referansların kurgusal evrene aittir; gerçek ülke/şehir/kişi/kurum adı kullanma.`
+        : `You are the Virtual Operator running the Strategic Crisis Desk. Goal: keep all metrics above zero. All references belong to a fictional universe; never use real country/city/person/organization names.`;
 
     const userPrompt =
       lang === "tr"
