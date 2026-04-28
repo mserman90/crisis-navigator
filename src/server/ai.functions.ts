@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getAuthedSupabase } from "@/integrations/supabase/auth-helper";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
@@ -83,9 +83,9 @@ async function callAI(body: unknown) {
 }
 
 export const generateScenario = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => generateScenarioInput.parse(data))
   .handler(async ({ data }) => {
+    await getAuthedSupabase();
     const { threat, lastMove, metrics, lang } = data;
 
     const systemPrompt =
@@ -173,9 +173,9 @@ Task: Generate a new crisis escalation in response to Blue Team's move. Provide 
   });
 
 export const generateOperatorChoice = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => generateOperatorChoiceInput.parse(data))
   .handler(async ({ data }) => {
+    await getAuthedSupabase();
     const { situation, options, metrics, lang } = data;
 
     const systemPrompt =
@@ -188,13 +188,13 @@ export const generateOperatorChoice = createServerFn({ method: "POST" })
         ? `Metrikler: Su:%${metrics.water}, Güven:%${metrics.trust}, Diplomasi:%${metrics.diplomacy}, Altyapı:%${metrics.infrastructure}.
 Durum: ${situation}
 Seçenekler:
-${options.map((o, i) => `${i}: ${o.text}`).join("\n")}
+${options.map((o: { text: string }, i: number) => `${i}: ${o.text}`).join("\n")}
 
 En mantıklı seçeneğin indeks numarasını seç.`
         : `Metrics: Water:${metrics.water}%, Trust:${metrics.trust}%, Diplomacy:${metrics.diplomacy}%, Infrastructure:${metrics.infrastructure}%.
 Situation: ${situation}
 Options:
-${options.map((o, i) => `${i}: ${o.text}`).join("\n")}
+${options.map((o: { text: string }, i: number) => `${i}: ${o.text}`).join("\n")}
 
 Pick the index of the most reasonable option.`;
 
